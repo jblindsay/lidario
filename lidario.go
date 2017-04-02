@@ -424,54 +424,7 @@ func (las *LasFile) readPoints() error {
 		las.usePointUserdata = false
 	}
 
-	// var offset uint32
-	// for i := uint32(0); i < las.Header.NumberPoints; i++ {
-	// 	offset = i * uint32(las.Header.PointRecordLength)
-	// 	p := PointRecord0{}
-	// 	p.X = float64(int32(binary.LittleEndian.Uint32(b[offset:offset+4])))*las.Header.XScaleFactor + las.Header.XOffset
-	// 	offset += 4
-	// 	p.Y = float64(int32(binary.LittleEndian.Uint32(b[offset:offset+4])))*las.Header.YScaleFactor + las.Header.YOffset
-	// 	offset += 4
-	// 	p.Z = float64(int32(binary.LittleEndian.Uint32(b[offset:offset+4])))*las.Header.ZScaleFactor + las.Header.ZOffset
-	// 	offset += 4
-	// 	if las.usePointIntensity {
-	// 		p.Intensity = binary.LittleEndian.Uint16(b[offset : offset+2])
-	// 		offset += 2
-	// 	}
-	// 	p.BitField = PointBitField{Value: b[offset]}
-	// 	offset++
-	// 	p.ClassBitField = ClassificationBitField{Value: b[offset]}
-	// 	offset++
-	// 	p.ScanAngle = int8(b[offset])
-	// 	offset++
-	// 	if las.usePointUserdata {
-	// 		p.UserData = b[offset]
-	// 		offset++
-	// 	}
-	// 	p.PointSourceID = binary.LittleEndian.Uint16(b[offset : offset+2])
-	// 	offset += 2
-
-	// 	las.pointData[i] = p
-
-	// 	if las.Header.PointFormatID == 1 || las.Header.PointFormatID == 3 {
-	// 		las.gpsData[i] = math.Float64frombits(binary.LittleEndian.Uint64(b[offset : offset+8]))
-	// 		offset += 8
-	// 	}
-	// 	if las.Header.PointFormatID == 2 || las.Header.PointFormatID == 3 {
-	// 		rgb := RgbData{}
-	// 		rgb.Red = binary.LittleEndian.Uint16(b[offset : offset+2])
-	// 		offset += 2
-	// 		rgb.Green = binary.LittleEndian.Uint16(b[offset : offset+2])
-	// 		offset += 2
-	// 		rgb.Blue = binary.LittleEndian.Uint16(b[offset : offset+2])
-	// 		offset += 2
-	// 		las.rgbData[i] = rgb
-	// 	}
-	// }
-
 	numCPUs := runtime.NumCPU()
-	// c1 := make(chan bool)
-	// fmt.Println("Num cores:", runtime.GOMAXPROCS(-1)) //numCPUs)
 	var wg sync.WaitGroup
 	blockSize := las.Header.NumberPoints / uint32(numCPUs)
 
@@ -529,14 +482,9 @@ func (las *LasFile) readPoints() error {
 					las.rgbData[i] = rgb
 				}
 			}
-			// c1 <- true // block completed
 		}(startingPoint, endingPoint)
 		startingPoint = endingPoint + 1
 	}
-
-	// for blocksCompleted := 0; blocksCompleted < numCPUs; blocksCompleted++ {
-	// 	<-c1 // a block has successfully completed
-	// }
 
 	wg.Wait()
 
@@ -586,14 +534,13 @@ func (las *LasFile) write() error {
 	}
 
 	w := bufio.NewWriter(las.f)
-	// buf := new(bytes.Buffer)
 	bytes2 := make([]byte, 2)
 	bytes4 := make([]byte, 4)
 	bytes8 := make([]byte, 8)
 
-	/////////////////////////////////
-	// Write the header to the file /
-	/////////////////////////////////
+	//////////////////////////////////
+	// Write the header to the file //
+	//////////////////////////////////
 
 	las.Header.FileSignature = "LASF"
 	w.WriteString(las.Header.FileSignature)
@@ -734,9 +681,9 @@ func (las *LasFile) write() error {
 	binary.LittleEndian.PutUint64(bytes8, las.Header.WaveformDataStart)
 	w.Write(bytes8)
 
-	///////////////////////////////
-	// Write the VLRs to the file /
-	///////////////////////////////
+	////////////////////////////////
+	// Write the VLRs to the file //
+	////////////////////////////////
 	for i := uint32(0); i < las.Header.NumberOfVLRs; i++ {
 		vlr := las.VlrData[i]
 
@@ -756,9 +703,9 @@ func (las *LasFile) write() error {
 		w.Write(vlr.BinaryData)
 	}
 
-	////////////////////////////////
-	// Write the point to the file /
-	////////////////////////////////
+	//////////////////////////////////
+	// Write the points to the file //
+	//////////////////////////////////
 	numCPUs := runtime.NumCPU()
 	var wg sync.WaitGroup
 	blockSize := las.Header.NumberPoints / uint32(numCPUs)
@@ -963,7 +910,6 @@ func (las *LasFile) write() error {
 				b2 := make([]byte, 2)
 				b4 := make([]byte, 4)
 				b8 := make([]byte, 8)
-				// var offset uint32
 				for i := pointSt; i <= pointEnd; i++ {
 					p = las.pointData[i]
 					buf := new(bytes.Buffer)
@@ -1023,60 +969,6 @@ func (las *LasFile) write() error {
 	wg.Wait()
 	w.Write(b)
 	w.Flush()
-
-	// 	var val int32
-	// 	var p PointRecord0
-	// 	b2 := make([]byte, 2)
-	// 	b4 := make([]byte, 4)
-	// 	// b8 := make([]byte, 8)
-	// 	for i := uint32(0); i < las.Header.NumberPoints; i++ {
-	// 		p = las.pointData[i]
-	// 		buf := new(bytes.Buffer)
-
-	// 		val = int32((p.X - las.Header.XOffset) / las.Header.XScaleFactor)
-	// 		binary.LittleEndian.PutUint32(b4, uint32(val))
-	// 		buf.Write(b4)
-
-	// 		val = int32((p.Y - las.Header.YOffset) / las.Header.YScaleFactor)
-	// 		binary.LittleEndian.PutUint32(b4, uint32(val))
-	// 		buf.Write(b4)
-
-	// 		val = int32((p.Z - las.Header.ZOffset) / las.Header.ZScaleFactor)
-	// 		binary.LittleEndian.PutUint32(b4, uint32(val))
-	// 		buf.Write(b4)
-
-	// 		if las.usePointIntensity {
-	// 			binary.LittleEndian.PutUint16(b2, p.Intensity)
-	// 			buf.Write(b2)
-	// 		}
-
-	// 		buf.WriteByte(p.BitField.Value)
-	// 		buf.WriteByte(p.ClassBitField.Value)
-	// 		buf.WriteByte(uint8(p.ScanAngle))
-
-	// 		if las.usePointUserdata {
-	// 			buf.WriteByte(p.UserData)
-	// 		}
-
-	// 		binary.LittleEndian.PutUint16(b2, p.PointSourceID)
-	// 		buf.Write(b2)
-
-	// 		d := buf.Bytes()
-	// 		offset := i * uint32(las.Header.PointRecordLength)
-	// 		for j := 0; j < len(d); j++ {
-	// 			b[offset+uint32(j)] = d[j]
-	// 		}
-
-	// 	}
-	// }
-
-	// out := make([]float32, len())
-	// for i := 0; i < len(r.data); i++ {
-	// 	out[i] = float32(r.data[i])
-	// }
-	// if err = binary.Write(buf, binary.LittleEndian, out); err != nil {
-	// 	return errors.New("error writing LAS file")
-	// }
 
 	return nil
 }
