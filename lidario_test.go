@@ -2,6 +2,7 @@ package lidario
 
 import (
 	"fmt"
+	"os"
 	"testing"
 )
 
@@ -58,17 +59,6 @@ func TestReadLasFile(t *testing.T) {
 		}
 	}
 
-	// for i := j; i < j+100; i++ {
-	// 	if p, err = lf.LasPoint(i); err != nil {
-	// 		fmt.Println(err)
-	// 		t.Fatal()
-	// 	}
-	// 	pd := p.PointData()
-	// 	fmt.Printf("Point %v: (%f, %f, %f, %v, %v, %f)\n", i, pd.X, pd.Y, pd.X, pd.Intensity, pd.ClassBitField.ClassificationString(), p.GpsTimeData())
-	// 	// cbf := p.GetClassBitField()
-	// 	// fmt.Printf("Point %v: (%f, %f, %f, %v, %v)\n", i, p.GetX(), p.GetY(), p.GetZ(), p.GetIntensity(), cbf.ClassificationString())
-	// }
-
 }
 
 func TestWriteLasFile(t *testing.T) {
@@ -82,18 +72,12 @@ func TestWriteLasFile(t *testing.T) {
 	}
 	defer lf.Close()
 
-	// fmt.Println(lf.Header.VersionMinor)
-
 	newFileName := "testdata/newFile.las"
 	newLf, err := InitializeUsingFile(newFileName, lf)
 	if err != nil {
 		fmt.Println(err)
 		t.Fail()
 	}
-	defer newLf.Close()
-
-	// fmt.Println(lf.Header.VersionMinor)
-	// fmt.Println(newLf.Header.VersionMinor)
 
 	progress := 0
 	oldProgress := -1
@@ -113,6 +97,14 @@ func TestWriteLasFile(t *testing.T) {
 				fmt.Printf("Progress: %v\n", progress)
 			}
 		}
+	}
+
+	newLf.Close()
+
+	// now delete the file
+	if err = os.Remove(newFileName); err != nil {
+		fmt.Println(err)
+		t.Fail()
 	}
 
 }

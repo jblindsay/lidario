@@ -11,7 +11,7 @@ try:
     GOOS = 'darwin' # darwin, windows, or linux
     GOARCH = 'amd64' # 386, amd64, or arm
     cleanCode = False
-    mode = 'install' # install, build, or test; cross-compilation requires build
+    mode = 'test' # install, build, or test; cross-compilation requires build
 
     # Change the current directory
     dir_path = os.path.dirname(os.path.realpath(__file__))
