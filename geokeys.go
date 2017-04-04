@@ -41,56 +41,6 @@ func (gk *GeoKeys) addASCIIParams(data []uint8) {
 	gk.GeoASCIIParams = string(data[:])
 }
 
-// func (gk *GeoKeys) getIFDMap() map[int]IfdEntry {
-// 	if len(gk.GeoKeyDirectory) == 0 {
-// 		panic("Error reading geokeys")
-// 	}
-
-// 	numKeys := gk.GeoKeyDirectory[3]
-
-// 	ifdMap := make(map[int]IfdEntry)
-// 	for i := uint16(0); i < numKeys; i++ {
-// 		offset := 4 * (i + 1)
-// 		keyID := gk.GeoKeyDirectory[offset]
-// 		var fieldType uint16
-// 		tiffTagLocation := gk.GeoKeyDirectory[offset+1]
-// 		count := gk.GeoKeyDirectory[offset+2]
-// 		valueOffset := gk.GeoKeyDirectory[offset+3]
-// 		var data []byte
-// 		if tiffTagLocation == 34737 {
-// 			// ASCII data
-// 			fieldType = 2
-// 			value := gk.GeoASCIIParams[valueOffset:(valueOffset + count)]
-// 			value = strings.Replace(value, "|", "", -1)
-// 			data = []byte(value)
-// 		} else if tiffTagLocation == 34736 {
-// 			// double (float64) data
-// 			fieldType = 12
-// 			value := gk.GeoDoubleParams[valueOffset:(valueOffset + count)]
-// 			for i := uint16(0); i < count; i++ {
-// 				bits := math.Float64bits(value[i])
-// 				bytes := make([]byte, 8)
-// 				binary.LittleEndian.PutUint64(bytes, bits)
-// 				for j := 0; j < len(bytes); j++ {
-// 					data = append(data, bytes[j])
-// 				}
-// 			}
-// 		} else if tiffTagLocation == 0 {
-// 			// short (u16) data
-// 			fieldType = 3
-// 			bytes := make([]byte, 2)
-// 			binary.LittleEndian.PutUint16(bytes, valueOffset)
-// 			data = append(data, bytes[0])
-// 			data = append(data, bytes[1])
-// 		}
-
-// 		ifd := CreateIfdEntry(int(keyID), GeotiffDataType(fieldType), uint32(count), data, binary.LittleEndian)
-
-// 		ifdMap[int(keyID)] = ifd
-// 	}
-// 	return ifdMap
-// }
-
 func (gk *GeoKeys) getIFDSlice() []IfdEntry {
 	if len(gk.GeoKeyDirectory) == 0 {
 		panic("Error reading geokeys")
@@ -158,82 +108,6 @@ func (gk *GeoKeys) interpretGeokeys() string {
 
 	return buffer.String()
 }
-
-// pub fn interpret_geokeys(&self) -> String {
-//     if self.geo_key_directory.len() == 0 {
-//         return "GeoKeys have not been set.".to_string();
-//     }
-//     let keys = get_keys_map();
-//     let keyword_map = get_keyword_map();
-//     let mut s = "".to_string();
-//     // first read the geokey directory header
-//     let key_directory_version = self.geo_key_directory[0];
-//     let key_revision = self.geo_key_directory[1];
-//     let minor_revision = self.geo_key_directory[2];
-//     let number_of_keys = self.geo_key_directory[3];
-
-//     s = s + &format!("GeoKey Header:
-// Directory version={},
-// Major revision={},
-// Minor revision={},
-// Num. keys={}", key_directory_version, key_revision, minor_revision, number_of_keys);
-
-//     for i in 0..number_of_keys as usize {
-//         let offset = 4 * (i+1);
-//         let key_id = self.geo_key_directory[offset];
-//         let unknown_tag = TiffTag::new_unknown_tag();
-//         let key = match keys.get(&key_id) {
-//             Some(key) => key,
-//             None => &unknown_tag //&TiffTag::new_unknown_tag()
-//         };
-//         // if key.name != "Unknown" {
-//         //
-//         // }
-
-//         let tiff_tag_location = self.geo_key_directory[offset+1];
-//         let count = self.geo_key_directory[offset+2];
-//         let value_offset = self.geo_key_directory[offset+3];
-//         if tiff_tag_location == 34737 {
-//             let value: &str = &self.geo_ascii_params[value_offset as usize..(value_offset+count) as usize];
-//             let value2 = value.replace("|", "");
-//             s = s + &format!("\nGeoKey {}:
-// Key={:?},
-// Type=ASCII,
-// Value={}", i+1, key, value2);
-//         } else if tiff_tag_location == 34736 {
-//             let value = &self.geo_double_params[value_offset as usize..(value_offset+count) as usize];
-//             s = s + &format!("\nGeoKey {}:
-// Key={:?},
-// Type=Double,
-// Count={},
-// Value={:?}", i+1, key, count, value);
-//         } else if tiff_tag_location == 0 {
-//             let key_code = key.code;
-//             let value: String;
-//             if keyword_map.contains_key(&key_code) {
-//                 match keyword_map.get(&key_code) {
-//                     Some(hm) => {
-//                         match hm.get(&value_offset)  {
-//                             Some(v) => value = v.to_string(),
-//                             None => value = "No value available".to_string()
-//                         }
-//                     },
-//                     None => value = "No value available".to_string()
-//                 }
-//                 s = s + &format!("\nGeoKey {}:
-// Key={:?},
-// Value={}", i+1, key, value);
-//             } else {
-//                 s = s + &format!("\nGeoKey {}:
-// Key={:?},
-// Value={}", i+1, key, value_offset);
-//             }
-//         } else {
-//             s = s + "Unknown tag";
-//         }
-// }
-//     return s;
-// }
 
 // errors types
 var errUnsupportedDataType = errors.New("Unsupported data type")

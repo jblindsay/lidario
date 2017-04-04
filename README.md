@@ -15,12 +15,11 @@ import "lidario"
 func main() {
     // Reading a LAS file
     fileName := "testdata/sample.las"
-    var lf *LasFile
+    var lf *lidario.LasFile
     var err error
-    lf, err = NewLasFile(fileName, "r")
+    lf, err = lidario.NewLasFile(fileName, "r")
     if err != nil {
         fmt.Println(err)
-        t.Fail()
     }
     defer lf.Close()
 
@@ -38,7 +37,7 @@ func main() {
     fmt.Printf("Point %v: (%f, %f, %f) Error: %v\n", j, x, y, z, err)
 	
     // Get an entire point, including all parts
-    var p LasPointer
+    var p lidario.LasPointer
     p, err = lf.LasPoint(1000)
     if err != nil {
         fmt.Println(err)
@@ -70,7 +69,7 @@ func main() {
 
     // Create a new LAS file
     newFileName := "testdata/newFile.las"
-    newLf, err := InitializeUsingFile(newFileName, lf)
+    newLf, err := lidario.InitializeUsingFile(newFileName, lf)
     if err != nil {
         fmt.Println(err)
         t.Fail()
