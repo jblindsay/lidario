@@ -7,7 +7,6 @@ import (
 )
 
 func TestReadLasFile(t *testing.T) {
-	// fileName := "/Users/johnlindsay/Documents/data/GarveyGlenWatershed/RGB_4_529_150502_1812__0_178080_2784.las"
 	fileName := "testdata/sample.las"
 	var lf *LasFile
 	var err error
@@ -20,10 +19,14 @@ func TestReadLasFile(t *testing.T) {
 	fmt.Printf("%v\n", lf.Header)
 
 	// Print the VLR data
-	fmt.Println("VLRs:")
+	fmt.Println("Printing VLRs:")
 	for _, vlr := range lf.VlrData {
 		fmt.Println(vlr)
 	}
+
+	fmt.Println("\nPrinting Geokeys:")
+	fmt.Println(lf.PrintGeokeys())
+	fmt.Println()
 
 	j := 1000000
 

@@ -25,6 +25,7 @@ type LasFile struct {
 	f                 *os.File
 	Header            LasHeader
 	VlrData           []VLR
+	geokeys           GeoKeys
 	pointData         []PointRecord0
 	gpsData           []float64
 	rgbData           []RgbData
@@ -379,10 +380,13 @@ func (las *LasFile) readVLRs() error {
 		}
 		if vlr.RecordID == 34735 {
 			// GeoKey directory
+			las.geokeys.addKeyDirectory(vlr.BinaryData)
 		} else if vlr.RecordID == 34736 {
 			// Double GeoKey parameters
+			las.geokeys.addDoubleParams(vlr.BinaryData)
 		} else if vlr.RecordID == 34737 {
 			// ASCII GeoKey parameters
+			las.geokeys.addASCIIParams(vlr.BinaryData)
 		}
 		las.VlrData[i] = vlr
 	}
@@ -973,6 +977,11 @@ func (las *LasFile) write() error {
 	return nil
 }
 
+// PrintGeokeys interprets the Geokeys, if there are any.
+func (las *LasFile) PrintGeokeys() string {
+	return las.geokeys.interpretGeokeys()
+}
+
 // LasHeader is a LAS file header structure.
 type LasHeader struct {
 	FileSignature        string
@@ -1239,6 +1248,7 @@ func (vlr VLR) String() string {
 		}
 	} else if vlr.RecordID == 34737 {
 		// ASCII GeoKey parameters
+		buffer.WriteString("\nData: ")
 		str = string(vlr.BinaryData[0:])
 		str = strings.Trim(str, " ")
 		str = strings.Trim(str, "\x00")
@@ -1527,13 +1537,14 @@ func (c *ClassificationBitField) SetWithheld(val bool) {
 	}
 }
 
-// RgbData holds LAS point red-gree-blue colour data
+// RgbData holds LAS point red-green-blue colour data
 type RgbData struct {
 	Red   uint16
 	Green uint16
 	Blue  uint16
 }
 
+// Creates a fixed-length string with buffer characters as null
 func fixedLengthString(s string, length int) string {
 	var b bytes.Buffer
 	for n := 0; n < length; n++ {
