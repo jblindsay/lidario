@@ -95,14 +95,14 @@ func (gk *GeoKeys) getIFDSlice() []IfdEntry {
 
 func (gk *GeoKeys) interpretGeokeys() string {
 	if len(gk.GeoKeyDirectory) == 0 {
-		panic("Error reading geokeys")
+		return "There are no geokeys"
 	}
 	m := gk.getIFDSlice()
 
 	var buffer bytes.Buffer
 	var s string
 	for i, v := range m {
-		s = fmt.Sprintf("Geokey %v: %v\n", i+1, v)
+		s = fmt.Sprintf("Geokey %v { %v }\n", i+1, v)
 		buffer.WriteString(s)
 	}
 
@@ -236,32 +236,32 @@ func (ifd *IfdEntry) InterpretDataAsASCII() (u []string, err error) {
 
 func (ifd IfdEntry) String() string {
 	s := ifd.tag
-	retVal := fmt.Sprintf("%v , DataType: %v, Count: %v", s, ifd.dataType, ifd.count)
+	retVal := fmt.Sprintf("%v, dataType: %v, count: %v", s, ifd.dataType, ifd.count)
 	switch ifd.dataType {
 	case DTByte,
 		DTLong:
 		v, _ := ifd.InterpretDataAsInt()
-		return fmt.Sprintf("%s Value: %v", retVal, v)
+		return fmt.Sprintf("%s value: %v", retVal, v)
 	case DTShort:
 		v, _ := ifd.InterpretDataAsInt()
 		if ifd.count == 1 {
 			if strVal, ok := tagLookupTable(&ifd); ok == nil {
-				return fmt.Sprintf("%s Value: [%v, %s]", retVal, v[0], strVal)
+				return fmt.Sprintf("%s value: [%v, %s]", retVal, v[0], strVal)
 			}
-			return fmt.Sprintf("%s Value: %v", retVal, v)
+			return fmt.Sprintf("%s value: %v", retVal, v)
 		}
-		return fmt.Sprintf("%s Value: %v", retVal, v)
+		return fmt.Sprintf("%s value: %v", retVal, v)
 	case DTRational:
 		v, _ := ifd.InterpretDataAsRational()
-		return fmt.Sprintf("%s Value: %v", retVal, v)
+		return fmt.Sprintf("%s value: %v", retVal, v)
 	case DTFloat,
 		DTDouble:
 		v, _ := ifd.InterpretDataAsFloat()
-		return fmt.Sprintf("%s Value: %f", retVal, v)
+		return fmt.Sprintf("%s value: %f", retVal, v)
 
 	case DTASCII:
 		// v, _ := ifd.InterpretDataAsASCII()
-		return fmt.Sprintf("%s Value: %v", retVal, string(ifd.rawData)) //v)
+		return fmt.Sprintf("%s value: %v", retVal, string(ifd.rawData)) //v)
 	}
 	return retVal
 }
@@ -325,7 +325,7 @@ type GeoTiffTag struct {
 }
 
 func (g GeoTiffTag) String() string {
-	return fmt.Sprintf("Name: %s, Code: %d", g.Name, g.Code)
+	return fmt.Sprintf("name: %s, code: %d", g.Name, g.Code)
 }
 
 // Tags (see p. 28-41 of the spec).
@@ -621,8 +621,8 @@ func tagLookupTable(entry *IfdEntry) (string, error) {
 }
 
 var keywordMap = map[int]map[uint]string{
-	262:  photometricMap,
 	259:  compressionMap,
+	262:  photometricMap,
 	284:  planarConfiguationMap,
 	296:  resolutionUnitsMap,
 	317:  predictorMap,
@@ -638,6 +638,9 @@ var keywordMap = map[int]map[uint]string{
 	3072: projectedCSMap,
 	3074: projectionMap,
 	3075: projCoordTransGeoKeyMap,
+	3076: linearUnitsMap,
+	4096: verticalCSTypeMap,
+	4099: verticalUnitsMap,
 }
 
 var photometricMap = map[uint]string{
@@ -725,6 +728,24 @@ var angularUnitsMap = map[uint]string{
 	9106: "Angular_Gon",
 	9107: "Angular_DMS",
 	9108: "Angular_DMS_Hemisphere",
+}
+
+var verticalUnitsMap = map[uint]string{
+	9001: "Linear_Meter",
+	9002: "Linear_Foot",
+	9003: "Linear_Foot_US_Survey",
+	9004: "Linear_Foot_Modified_American",
+	9005: "Linear_Foot_Clarke",
+	9006: "Linear_Foot_Indian",
+	9007: "Linear_Link",
+	9008: "Linear_Link_Benoit",
+	9009: "Linear_Link_Sears",
+	9010: "Linear_Chain_Benoit",
+	9011: "Linear_Chain_Sears",
+	9012: "Linear_Yard_Sears",
+	9013: "Linear_Yard_Indian",
+	9014: "Linear_Fathom",
+	9015: "Linear_Mile_International_Nautical",
 }
 
 var geographicTypeMap = map[uint]string{
@@ -2414,4 +2435,45 @@ var projCoordTransGeoKeyMap = map[uint]string{
 	25: "CT_VanDerGrinten",
 	26: "CT_NewZealandMapGrid",
 	27: "CT_TransvMercator_SouthOriented",
+}
+
+var verticalCSTypeMap = map[uint]string{
+	5001: "VertCS_Airy_1830_ellipsoid",
+	5002: "VertCS_Airy_Modified_1849_ellipsoid",
+	5003: "VertCS_ANS_ellipsoid",
+	5004: "VertCS_Bessel_1841_ellipsoid",
+	5005: "VertCS_Bessel_Modified_ellipsoid",
+	5006: "VertCS_Bessel_Namibia_ellipsoid",
+	5007: "VertCS_Clarke_1858_ellipsoid",
+	5008: "VertCS_Clarke_1866_ellipsoid",
+	5010: "VertCS_Clarke_1880_Benoit_ellipsoid",
+	5011: "VertCS_Clarke_1880_IGN_ellipsoid",
+	5012: "VertCS_Clarke_1880_RGS_ellipsoid",
+	5013: "VertCS_Clarke_1880_Arc_ellipsoid",
+	5014: "VertCS_Clarke_1880_SGA_1922_ellipsoid",
+	5015: "VertCS_Everest_1830_1937_Adjustment_ellipsoid",
+	5016: "VertCS_Everest_1830_1967_Definition_ellipsoid",
+	5017: "VertCS_Everest_1830_1975_Definition_ellipsoid",
+	5018: "VertCS_Everest_1830_Modified_ellipsoid",
+	5019: "VertCS_GRS_1980_ellipsoid",
+	5020: "VertCS_Helmert_1906_ellipsoid",
+	5021: "VertCS_INS_ellipsoid",
+	5022: "VertCS_International_1924_ellipsoid",
+	5023: "VertCS_International_1967_ellipsoid",
+	5024: "VertCS_Krassowsky_1940_ellipsoid",
+	5025: "VertCS_NWL_9D_ellipsoid",
+	5026: "VertCS_NWL_10D_ellipsoid",
+	5027: "VertCS_Plessis_1817_ellipsoid",
+	5028: "VertCS_Struve_1860_ellipsoid",
+	5029: "VertCS_War_Office_ellipsoid",
+	5030: "VertCS_WGS_84_ellipsoid",
+	5031: "VertCS_GEM_10C_ellipsoid",
+	5032: "VertCS_OSU86F_ellipsoid",
+	5033: "VertCS_OSU91A_ellipsoid",
+	5101: "VertCS_Newlyn",
+	5102: "VertCS_North_American_Vertical_Datum_1929",
+	5103: "VertCS_North_American_Vertical_Datum_1988",
+	5104: "VertCS_Yellow_Sea_1956",
+	5105: "VertCS_Baltic_Sea",
+	5106: "VertCS_Caspian_Sea",
 }

@@ -10,7 +10,7 @@ Example Usage
 --------------
 
 ```Go
-import "lidario"
+import "github.com/jblindsay/lidario"
 
 func main() {
     // Reading a LAS file
