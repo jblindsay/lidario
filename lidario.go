@@ -20,18 +20,22 @@ var NoData = math.Inf(-1)
 
 // LasFile is a structure for manipulating LAS files.
 type LasFile struct {
-	fileName          string
-	fileMode          string
-	f                 *os.File
-	Header            LasHeader
-	VlrData           []VLR
-	geokeys           GeoKeys
-	pointData         []PointRecord0
-	gpsData           []float64
-	rgbData           []RgbData
-	usePointIntensity bool
-	usePointUserdata  bool
-	headerIsSet       bool
+	fileName               string
+	fileMode               string
+	f                      *os.File
+	Header                 LasHeader
+	VlrData                []VLR
+	geokeys                GeoKeys
+	pointData              []PointRecord0
+	gpsData                []float64
+	rgbData                []RgbData
+	usePointIntensity      bool
+	usePointUserdata       bool
+	headerIsSet            bool
+	fixedRadiusSearch2DSet bool
+	frs2D                  *fixedRadiusSearch
+	fixedRadiusSearch3DSet bool
+	frs3D                  *fixedRadiusSearch
 	sync.RWMutex
 }
 
@@ -39,7 +43,7 @@ type LasFile struct {
 func NewLasFile(fileName, fileMode string) (*LasFile, error) {
 	fileMode = strings.ToLower(fileMode)
 	// initialize the VLR array
-	vlrs := make([]VLR, 0)
+	vlrs := []VLR{}
 	las := LasFile{fileName: fileName, fileMode: fileMode, Header: LasHeader{}, VlrData: vlrs}
 	if las.fileMode == "r" || las.fileMode == "rh" {
 		if err := las.read(); err != nil {
@@ -1352,6 +1356,34 @@ func (las *LasFile) write() error {
 	w.Write(b)
 	w.Flush()
 
+	return nil
+}
+
+// FixedRadiusSearch2D performs a 2D fixed radius search
+func (las *LasFile) FixedRadiusSearch2D(x, y float64) *FRSResultList { //[]FixedRadiusSearchResult {
+	if !las.fixedRadiusSearch2DSet {
+		panic("SetFixedRadiusSearch must be called with threeDimensionalSearch set to 'false' before performing a 2D search")
+	}
+	return las.frs2D.search2D(x, y)
+}
+
+// FixedRadiusSearch3D performs a 3D fixed radius search
+func (las *LasFile) FixedRadiusSearch3D(x, y, z float64) *FRSResultList { //[]FixedRadiusSearchResult {
+	if !las.fixedRadiusSearch3DSet {
+		panic("SetFixedRadiusSearch must be called with threeDimensionalSearch set to 'true' before performing a 3D search")
+	}
+	return las.frs3D.search3D(x, y, z)
+}
+
+// SetFixedRadiusSearchDistance sets the fixed radius search
+func (las *LasFile) SetFixedRadiusSearchDistance(radius float64, threeDimensionalSearch bool) error {
+	if threeDimensionalSearch {
+		las.frs3D = build(las, radius, threeDimensionalSearch)
+		las.fixedRadiusSearch3DSet = true
+	} else {
+		las.frs2D = build(las, radius, threeDimensionalSearch)
+		las.fixedRadiusSearch2DSet = true
+	}
 	return nil
 }
 
