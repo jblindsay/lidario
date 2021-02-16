@@ -51,7 +51,6 @@ func NewLasFile(fileName, fileMode string) (*LasFile, error) {
 		}
 	} else {
 		las.fileMode = "w"
-		fmt.Println("Okay, write the new file: ", fileName)
 		var err error
 		if las.f, err = os.Create(las.fileName); err != nil {
 			return &las, err
@@ -305,7 +304,10 @@ func (las *LasFile) Close() error {
 		return errors.New("the LAS reader is nil")
 	}
 	if las.fileMode == "w" {
-		las.write()
+		if err := las.write(); err != nil {
+			las.f.Close()
+			return err
+		}
 	}
 	return las.f.Close()
 }
@@ -689,15 +691,13 @@ func (las *LasFile) write() error {
 	binary.LittleEndian.PutUint16(bytes2, las.Header.GlobalEncoding.Value)
 	w.Write(bytes2)
 
-	if las.Header.projectIDUsed {
-		binary.LittleEndian.PutUint32(bytes4, uint32(las.Header.ProjectID1))
-		w.Write(bytes4)
-		binary.LittleEndian.PutUint16(bytes2, uint16(las.Header.ProjectID2))
-		w.Write(bytes2)
-		binary.LittleEndian.PutUint16(bytes2, uint16(las.Header.ProjectID3))
-		w.Write(bytes2)
-		w.Write(las.Header.ProjectID4[:])
-	}
+	binary.LittleEndian.PutUint32(bytes4, uint32(las.Header.ProjectID1))
+	w.Write(bytes4)
+	binary.LittleEndian.PutUint16(bytes2, uint16(las.Header.ProjectID2))
+	w.Write(bytes2)
+	binary.LittleEndian.PutUint16(bytes2, uint16(las.Header.ProjectID3))
+	w.Write(bytes2)
+	w.Write(las.Header.ProjectID4[:])
 
 	las.Header.VersionMajor = 1
 	w.WriteByte(las.Header.VersionMajor)
