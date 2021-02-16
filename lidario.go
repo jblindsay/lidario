@@ -742,17 +742,8 @@ func (las *LasFile) write() error {
 
 	// Intensity and userdata are both optional. Figure out if they need to be read.
 	// The only way to do this is to compare the point record length by point format
-	recLengths := [][]int{{20, 18, 19, 17}, {28, 26, 27, 25}, {26, 24, 25, 23}, {34, 32, 33, 31}}
-
-	if las.usePointIntensity && las.usePointUserdata {
-		las.Header.PointRecordLength = recLengths[las.Header.PointFormatID][0]
-	} else if !las.usePointIntensity && las.usePointUserdata {
-		las.Header.PointRecordLength = recLengths[las.Header.PointFormatID][1]
-	} else if las.usePointIntensity && !las.usePointUserdata {
-		las.Header.PointRecordLength = recLengths[las.Header.PointFormatID][2]
-	} else { //if !las.usePointIntensity && !las.usePointUserdata {
-		las.Header.PointRecordLength = recLengths[las.Header.PointFormatID][3]
-	}
+	recLengths := []int{20, 28, 26, 34}
+	las.Header.PointRecordLength = recLengths[las.Header.PointFormatID]
 
 	binary.LittleEndian.PutUint16(bytes2, uint16(las.Header.PointRecordLength))
 	w.Write(bytes2)
@@ -893,22 +884,18 @@ func (las *LasFile) write() error {
 					b[offset+3] = b4[3]
 					offset += 4
 
-					if las.usePointIntensity {
-						binary.LittleEndian.PutUint16(b2, p.Intensity)
-						b[offset] = b2[0]
-						b[offset+1] = b2[1]
-						offset += 2
-					}
+					binary.LittleEndian.PutUint16(b2, p.Intensity)
+					b[offset] = b2[0]
+					b[offset+1] = b2[1]
+					offset += 2
 
 					b[offset] = p.BitField.Value
 					b[offset+1] = p.ClassBitField.Value
 					b[offset+2] = uint8(p.ScanAngle)
 					offset += 3
 
-					if las.usePointUserdata {
-						b[offset] = p.UserData
-						offset++
-					}
+					b[offset] = p.UserData
+					offset++
 
 					binary.LittleEndian.PutUint16(b2, p.PointSourceID)
 					b[offset] = b2[0]
@@ -929,18 +916,14 @@ func (las *LasFile) write() error {
 					// binary.LittleEndian.PutUint32(b4, uint32(val))
 					// buf.Write(b4)
 
-					// if las.usePointIntensity {
 					// 	binary.LittleEndian.PutUint16(b2, p.Intensity)
 					// 	buf.Write(b2)
-					// }
 
 					// buf.WriteByte(p.BitField.Value)
 					// buf.WriteByte(p.ClassBitField.Value)
 					// buf.WriteByte(uint8(p.ScanAngle))
 
-					// if las.usePointUserdata {
 					// 	buf.WriteByte(p.UserData)
-					// }
 
 					// binary.LittleEndian.PutUint16(b2, p.PointSourceID)
 					// buf.Write(b2)
@@ -1001,22 +984,18 @@ func (las *LasFile) write() error {
 					b[offset+3] = b4[3]
 					offset += 4
 
-					if las.usePointIntensity {
-						binary.LittleEndian.PutUint16(b2, p.Intensity)
-						b[offset] = b2[0]
-						b[offset+1] = b2[1]
-						offset += 2
-					}
+					binary.LittleEndian.PutUint16(b2, p.Intensity)
+					b[offset] = b2[0]
+					b[offset+1] = b2[1]
+					offset += 2
 
 					b[offset] = p.BitField.Value
 					b[offset+1] = p.ClassBitField.Value
 					b[offset+2] = uint8(p.ScanAngle)
 					offset += 3
 
-					if las.usePointUserdata {
-						b[offset] = p.UserData
-						offset++
-					}
+					b[offset] = p.UserData
+					offset++
 
 					binary.LittleEndian.PutUint16(b2, p.PointSourceID)
 					b[offset] = b2[0]
@@ -1049,18 +1028,14 @@ func (las *LasFile) write() error {
 					// binary.LittleEndian.PutUint32(b4, uint32(val))
 					// buf.Write(b4)
 
-					// if las.usePointIntensity {
 					// 	binary.LittleEndian.PutUint16(b2, p.Intensity)
 					// 	buf.Write(b2)
-					// }
 
 					// buf.WriteByte(p.BitField.Value)
 					// buf.WriteByte(p.ClassBitField.Value)
 					// buf.WriteByte(uint8(p.ScanAngle))
 
-					// if las.usePointUserdata {
 					// 	buf.WriteByte(p.UserData)
-					// }
 
 					// binary.LittleEndian.PutUint16(b2, p.PointSourceID)
 					// buf.Write(b2)
@@ -1123,22 +1098,18 @@ func (las *LasFile) write() error {
 					b[offset+3] = b4[3]
 					offset += 4
 
-					if las.usePointIntensity {
-						binary.LittleEndian.PutUint16(b2, p.Intensity)
-						b[offset] = b2[0]
-						b[offset+1] = b2[1]
-						offset += 2
-					}
+					binary.LittleEndian.PutUint16(b2, p.Intensity)
+					b[offset] = b2[0]
+					b[offset+1] = b2[1]
+					offset += 2
 
 					b[offset] = p.BitField.Value
 					b[offset+1] = p.ClassBitField.Value
 					b[offset+2] = uint8(p.ScanAngle)
 					offset += 3
 
-					if las.usePointUserdata {
-						b[offset] = p.UserData
-						offset++
-					}
+					b[offset] = p.UserData
+					offset++
 
 					binary.LittleEndian.PutUint16(b2, p.PointSourceID)
 					b[offset] = b2[0]
@@ -1173,18 +1144,14 @@ func (las *LasFile) write() error {
 					// binary.LittleEndian.PutUint32(b4, uint32(val))
 					// buf.Write(b4)
 
-					// if las.usePointIntensity {
 					// 	binary.LittleEndian.PutUint16(b2, p.Intensity)
 					// 	buf.Write(b2)
-					// }
 
 					// buf.WriteByte(p.BitField.Value)
 					// buf.WriteByte(p.ClassBitField.Value)
 					// buf.WriteByte(uint8(p.ScanAngle))
 
-					// if las.usePointUserdata {
 					// 	buf.WriteByte(p.UserData)
-					// }
 
 					// binary.LittleEndian.PutUint16(b2, p.PointSourceID)
 					// buf.Write(b2)
@@ -1252,22 +1219,18 @@ func (las *LasFile) write() error {
 					b[offset+3] = b4[3]
 					offset += 4
 
-					if las.usePointIntensity {
-						binary.LittleEndian.PutUint16(b2, p.Intensity)
-						b[offset] = b2[0]
-						b[offset+1] = b2[1]
-						offset += 2
-					}
+					binary.LittleEndian.PutUint16(b2, p.Intensity)
+					b[offset] = b2[0]
+					b[offset+1] = b2[1]
+					offset += 2
 
 					b[offset] = p.BitField.Value
 					b[offset+1] = p.ClassBitField.Value
 					b[offset+2] = uint8(p.ScanAngle)
 					offset += 3
 
-					if las.usePointUserdata {
-						b[offset] = p.UserData
-						offset++
-					}
+					b[offset] = p.UserData
+					offset++
 
 					binary.LittleEndian.PutUint16(b2, p.PointSourceID)
 					b[offset] = b2[0]
@@ -1313,18 +1276,14 @@ func (las *LasFile) write() error {
 					// binary.LittleEndian.PutUint32(b4, uint32(val))
 					// buf.Write(b4)
 
-					// if las.usePointIntensity {
 					// 	binary.LittleEndian.PutUint16(b2, p.Intensity)
 					// 	buf.Write(b2)
-					// }
 
 					// buf.WriteByte(p.BitField.Value)
 					// buf.WriteByte(p.ClassBitField.Value)
 					// buf.WriteByte(uint8(p.ScanAngle))
 
-					// if las.usePointUserdata {
 					// 	buf.WriteByte(p.UserData)
-					// }
 
 					// binary.LittleEndian.PutUint16(b2, p.PointSourceID)
 					// buf.Write(b2)
